@@ -28,7 +28,16 @@ var carSelection = {
   package: {choice: 'Not Selected', price: 0}
 }
 
-// toggle navigation
+// load vehicle options by default
+var source = $('#vehicle-options-template').html();
+var template = Handlebars.compile(source);
+for(var i = 0; i < vehicleOptions.length; i++){
+  var vehicle = {feature: vehicleOptions[i].choice, price: vehicleOptions[i].price};
+  var html = template(vehicle);
+  $('#options-display').append(html);
+}
+
+// toggle navigation / option display
 $('.navigation li').on('click',function(){
   // toggle active tab
   $('.navigation .active').removeClass('active');
@@ -56,14 +65,55 @@ $('.navigation li').on('click',function(){
         }
       break;
     case 'package':
-      console.log('hello');
+        var source = $('#package-options-template').html();
+        var template = Handlebars.compile(source);
+        for(var i = 0; i < packageOptions.length; i++){
+          var package = {feature: packageOptions[i].choice, price: packageOptions[i].price};
+          var html = template(package);
+          $('#options-display').append(html);
+        }
       break;
     case 'summary':
-      console.log('hello');
+        var source = $('#summary-options-template').html();
+        var template = Handlebars.compile(source);
+        var html = template(carSelection);
+        $('#options-display').append(html);
       break;
     default:
-      console.log('wow');
+      console.log('An error occured.');
   }
-
-
 });
+
+// listen for selection
+$('#options-display').on('click','.vehicle-option, .color-option, .package-option',function(){
+  // update carSelection object
+  var panel = $(this).data('panel');
+  carSelection[panel].choice = $(this).data('option');
+  carSelection[panel].price = $(this).data('price');
+  // update img
+  $('.vehicle-display').attr('src', getImgSrc(carSelection));
+  // update total cost
+  $('.cost-display').text('$'+ getPrice(carSelection).toLocaleString());
+})
+
+function getImgSrc(car){
+  var imgSrc = 'assets/';
+  var vehicle = car.vehicle.choice;
+  var color = car.color.choice;
+
+  if(vehicle != 'Not Selected' && color != 'Not Selected'){
+    imgSrc += vehicle + '-' + color + '.jpg';
+  } else if(vehicle != 'Not Selected'){
+    imgSrc += vehicle + '.jpg';
+  }
+  return imgSrc;
+}
+
+function getPrice(car){
+  var totalCost = 0;
+  var vehicleCost = car.vehicle.price;
+  var colorCost = car.color.price;
+  var packageCost = car.package.price;
+  totalCost = vehicleCost + colorCost + packageCost;
+  return totalCost;
+}
